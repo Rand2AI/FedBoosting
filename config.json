@@ -1,0 +1,76 @@
+{
+  "NAME": "FedBoost: Federated Learning with Gradient Protected Boosting",
+
+  "AUTHOR": "Hanchi Ren, Jingjing Deng, Xiaoke Ma, Yichuan Wang and Xianghua Xie",
+
+  "INSTUTITE": "Swansea University, United Kingdom; Xidian University, China; Xi'an University of Technology, China",
+
+  "WORKMODE": "Estimation",
+
+  "MODE_SET": ["Estimation", "Inference"],
+
+  "NETWORK":
+  {
+    "BACKBONE_CNN_FLOW": "Original",
+    "BACKBONE_CNN_AVAILABLE": ["Original"],
+    "BACKBONE_CNN_LAYER": 121,
+    "BACKBONE_RNN_CELL": "LSTM",
+    "BACKBONE_RNN1_UNIT": [256, 256],
+    "BACKBONE_RNN2_UNIT": [256],
+    "BACKBONE_RNN_AVAILABLE": ["LSTM", "GRU"],
+    "DICTIONARY_PATH": "./Data/Text/_@Models/FL_CRNN/character_upper.txt",
+    "DICTIONARY_SIZE": 37,
+    "MAX_LABEL_LENGTH": 32,
+    "IMAGE_HEIGHT": 32,
+    "IMAGE_WIDTH": 0,
+    "IMAGE_CHANNEL" : 3
+  },
+
+  "DEVICE":
+  {
+    "DEVICE_TOUSE": "GPU",
+    "DEVICE_GPUID": [0],
+    "CLIENT_GPU_FRACTION": 0.80,
+    "SERVER_GPU_FRACTION": 0.45
+  },
+
+  "ESTIMATION":
+  {
+    "DEBUG": 1,
+    "FL_STRATEGY": "FedAvg",
+    "FL_STRAEGY_SET": ["FedAvg, FedBoost"],
+    "FL_STRATEGY_METRICS": "loss",
+    "FL_STRATEGY_METRICS_SET": ["acc", "loss"],
+    "OPT_BACKPROP": "adadelta",
+    "OPT_BACKPROP_SET": ["SGD", "ADAM", "rmsprop", "adadelta"],
+    "LEARNING_RATE": 0.05,
+    "SGD_MOMENTUM": 0.9,
+    "SGD_DECAY": 0.0005,
+    "SGD_NESTEROV": true,
+    "FINETUNE" : true,
+    "WEIGHT_TOLOAD": "",
+    "STEMFREEZE": false,
+    "TRN_RATIO": 0.9,
+    "IMAGE_SIZE": [32, 100],
+    "NUM_MAXEPOCH": 50,
+    "NUM_MINEPOCH": 5,
+    "BATCH_SIZE": 800,
+    "VAL_BITCH_SIZE": 800,
+    "ROUNDS": 100,
+    "CLIENTS": 2,
+    "SAVE_CLIENT_MODEL": true,
+    "CLIENT_EPOCH": [1,1],
+    "TRAIN_NAME_LIST": ["SynthText90K", "SynthText80K"],
+    "TEST_NAME_LIST": ["IIIT.5K", "SVT", "SCUT", "ICDAR2015"],
+    "TRAIN_ROOT_PATH": "./Data/Text/_@Models/FL_CRNN/",
+    "MODEL_ROOT_PATH": "./Data/Text/_@Models/FL_CRNN/FL_Model/",
+    "MANAGER_PORT": 7777,
+    "MANAGER_DOMAIN": "csvision.swansea.ac.uk",
+    "MANAGER_AUTH_KEY": "hahaha"
+  },
+  "INFERENCE":
+  {
+    "SAVE_IMG": false,
+    "WEIGHT_TOLOAD": ""
+  }
+}

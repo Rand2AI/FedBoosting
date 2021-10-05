@@ -26,7 +26,7 @@ tqdm==4.44.1
 
 ## Performance
 
-<div align=center><img src="https://github.com/Rand2AI/FedBoost/blob/main/Image/FedBoost_performance.png" width=500/></div>
+<div align=center><img src="https://github.com/Rand2AI/FedBoost/blob/main/Image/FedBoost_performance.png" width=600/></div>
 
 ## How to use
 

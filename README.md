@@ -20,7 +20,7 @@ This is the implementation of the paper "FedBoost: Federated Learning with Gradi
 
     tqdm==4.44.1
 
-    [swiss_army_tensorboard](https://github.com/gaborvecsei/Swiss-Army-Tensorboard)
+    swiss_army_tensorboard (https://github.com/gaborvecsei/Swiss-Army-Tensorboard)
 
     ...
 

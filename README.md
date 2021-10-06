@@ -8,21 +8,21 @@ This is the implementation of the paper "FedBoost: Federated Learning with Gradi
 
 ## Requirements
 
-python==3.6.9
+    python==3.6.9
 
-Flask==2.0.0
+    Flask==2.0.0
 
-Pillow==7.0.0
+    Pillow==7.0.0
 
-requests==2.23.0
+    requests==2.23.0
 
-tensorflow-gpu==1.14.0
+    tensorflow-gpu==1.14.0
 
-tqdm==4.44.1
+    tqdm==4.44.1
 
-[swiss_army_tensorboard](https://github.com/gaborvecsei/Swiss-Army-Tensorboard)
+    [swiss_army_tensorboard](https://github.com/gaborvecsei/Swiss-Army-Tensorboard)
 
-...
+    ...
 
 ## Performance
 

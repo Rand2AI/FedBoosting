@@ -49,8 +49,8 @@ This is the implementation of the paper "FedBoost: Federated Learning with Gradi
 If you find this work helpful for your research, please cite the following paper:
 
     @article{ren2020privacy,
-      title={Privacy Preserving Text Recognition with Gradient-Boosting for Federated Learning},
-      author={Ren, Hanchi and Deng, Jingjing and Xie, Xianghua},
+      title={FedBoost: Federated Learning with Gradient Protected Boosting for Text Recognition},
+      author={Ren, Hanchi and Deng, Jingjing, Xie, Xianghua, Xiaoke Ma and Yichuan Wang},
       journal={arXiv preprint arXiv:2007.07296},
       year={2020}
     }

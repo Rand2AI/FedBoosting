@@ -1,10 +1,10 @@
-# FedBoost: Federated Learning with Gradient Protected Boosting
+# FedBoosting: Federated Learning with Gradient Protected Boosting
 
 ## Introduction
 
-This is the implementation of the paper "FedBoost: Federated Learning with Gradient Protected Boosting". We show in this paper that the generalization ability of the joint model is poor on Non-Independent and Non-Identically Distributed (Non-IID) data, particularly when the Federated Averaging (FedAvg) strategy is used due to the weight divergence phenomenon. We propose a novel boosting algorithm for FL to address this generalization issue, as well as achieving a much faster convergence rate in gradient-based optimization. In addition, a secure gradient sharing protocol using Homomorphic Encryption (HE) and Differential Privacy (DP) is introduced to defend against gradient leakage attack. We demonstrate the proposed Federated Boosting (FedBoost) method achieves significant improvements in both prediction accuracy and run-time efficiency on text recognition task using public benchmark.
+This is the implementation of the paper "FedBoosting: Federated Learning with Gradient Protected Boosting". We show in this paper that the generalization ability of the joint model is poor on Non-Independent and Non-Identically Distributed (Non-IID) data, particularly when the Federated Averaging (FedAvg) strategy is used due to the weight divergence phenomenon. We propose a novel boosting algorithm for FL to address this generalization issue, as well as achieving a much faster convergence rate in gradient-based optimization. In addition, a secure gradient sharing protocol using Homomorphic Encryption (HE) and Differential Privacy (DP) is introduced to defend against gradient leakage attack. We demonstrate the proposed Federated Boosting (FedBoosting) method achieves significant improvements in both prediction accuracy and run-time efficiency on text recognition task using public benchmark.
 
-<div align=center><img src="https://github.com/Rand2AI/FedBoost/blob/main/Image/FedBoost_illustration.png" width=600/></div>
+<div align=center><img src="https://github.com/Rand2AI/FedBoosting/blob/main/Image/FedBoost_illustration.png" width=600/></div>
 
 ## Requirements
 
@@ -26,7 +26,7 @@ This is the implementation of the paper "FedBoost: Federated Learning with Gradi
 
 ## Performance
 
-<div align=center><img src="https://github.com/Rand2AI/FedBoost/blob/main/Image/FedBoost_performance.png" width=600/></div>
+<div align=center><img src="https://github.com/Rand2AI/FedBoosting/blob/main/Image/FedBoost_performance.png" width=600/></div>
 
 ## How to use
 
@@ -49,7 +49,7 @@ This is the implementation of the paper "FedBoost: Federated Learning with Gradi
 If you find this work helpful for your research, please cite the following paper:
 
     @article{ren2020privacy,
-      title={FedBoost: Federated Learning with Gradient Protected Boosting for Text Recognition},
+      title={FedBoosting: Federated Learning with Gradient Protected Boosting for Text Recognition},
       author={Ren, Hanchi and Deng, Jingjing, Xie, Xianghua, Xiaoke Ma and Yichuan Wang},
       journal={arXiv preprint arXiv:2007.07296},
       year={2020}

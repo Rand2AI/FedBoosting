@@ -13,38 +13,40 @@ class DataHandler:
         self.evaluate_data = self.train_data[thres:len(self.train_data)]
         self.train_data = self.train_data[0:thres]
         print(f"Number of training images is {len(self.train_data)}")
-        print(f"Number of evaluating images is {len(self.evaluate_data)}")
+        print(f"Number of validation images is {len(self.evaluate_data)}")
 
     def process_train_data(self, Datapath):
-        TrainFile = Datapath + '/train_FL.json'
+        TrainFile = Datapath
         if self.debug:
             train_data = []
             with open(TrainFile, 'r', encoding='utf-8') as imgf:
                 train_data_line = imgf.readline()
                 while train_data_line:
                     train_data.append(train_data_line)
-                    if len(train_data)==50000: break
+                    if len(train_data)==5000: break
                     train_data_line = imgf.readline()
 
         else:
             with open(TrainFile, 'r', encoding='utf-8') as imgf:
                 train_data = imgf.readlines()
+        train_data.pop(0)
         self.train_data = train_data
         print(f"Number of total images is {len(self.train_data)}")
 
     def process_test_data(self, Datapath):
-        TestFile = Datapath + '/test_FL.json'
+        TestFile = Datapath
         if self.debug:
             test_data = []
             with open(TestFile, 'r', encoding='utf-8') as imgf:
                 test_data_line = imgf.readline()
                 while test_data_line:
                     test_data.append(test_data_line)
-                    if len(test_data) == 10000: break
+                    if len(test_data) == 5000: break
                     test_data_line = imgf.readline()
         else:
             with open(TestFile, 'r', encoding='utf-8') as imgf:
                 test_data = imgf.readlines()
+        test_data.pop(0)
         self.test_data = test_data
 
     def assign_data_to_clients(self, clients):
@@ -90,14 +92,11 @@ class sequence_order_num:
         self.index += 1
         return s_o
 
-def generator(client_train_dict: dict, data, mode="train"):
-    if mode=="train":
-        batchsize = client_train_dict["batch_size"]
-    else:
-        batchsize = client_train_dict["val_batch_size"]
-    batchsize = min(batchsize, len(data))
+def generator(client_train_dict: dict, data, batchsize, switch_label=False, switch_pair=None):
     char_to_id = gen_character(client_train_dict["char_file"])
     idlist = sequence_order_num(total=len(data), batchsize=batchsize)
+    if switch_label:
+        print(f"Switch label is open: {switch_pair}")
     while True:
         index = idlist.get(batchsize)
         x_generator = np.zeros((len(index), client_train_dict["image_size"][0], client_train_dict["image_size"][1], 3), dtype=np.float32)
@@ -107,6 +106,11 @@ def generator(client_train_dict: dict, data, mode="train"):
         for ind, i in enumerate(index):
             temp = json.loads(data[i].strip('\r\n'))
             IdNumber = temp['label'].upper()
+            if switch_label:
+                for cha, tar in switch_pair.items():
+                    IdNumber = IdNumber.replace(cha,"#")
+                    IdNumber = IdNumber.replace(tar, cha)
+                    IdNumber = IdNumber.replace("#", tar)
             labelL = len(IdNumber)
             Img = temp['img'].encode('utf-8')
             Img = cv2.imdecode(np.frombuffer(base64.b64decode(Img), np.uint8), 1)

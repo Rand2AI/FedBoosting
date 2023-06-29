@@ -11,63 +11,60 @@ from keras.utils.multi_gpu_utils import multi_gpu_model
 from keras.optimizers import Adam, SGD, Adadelta
 import tensorflow as tf
 
-def multi_gpu_model__(model, gpus):
-  if isinstance(gpus, (list, tuple)):
-    num_gpus = len(gpus)
-    target_gpu_ids = gpus
-  else:
-    num_gpus = gpus
-    target_gpu_ids = range(num_gpus)
-
-  def get_slice(data, i, parts):
-    shape = tf.shape(data)
-    batch_size = shape[:1]
-    input_shape = shape[1:]
-    step = batch_size // parts
-    if i == num_gpus - 1:
-      size = batch_size - step * i
+def multi_gpu_model__(model, gpus): # if model was trained on multi_gpu, must use this function to test on one gpu.
+    if isinstance(gpus, (list, tuple)):
+        num_gpus = len(gpus)
+        target_gpu_ids = gpus
     else:
-      size = step
-    size = tf.concat([size, input_shape], axis=0)
-    stride = tf.concat([step, input_shape * 0], axis=0)
-    start = stride * i
-    return tf.slice(data, start, size)
+        num_gpus = gpus
+        target_gpu_ids = range(num_gpus)
 
-  all_outputs = []
-  for i in range(len(model.outputs)):
-    all_outputs.append([])
+    def get_slice(data, i, parts):
+        shape = tf.shape(data)
+        batch_size = shape[:1]
+        input_shape = shape[1:]
+        step = batch_size // parts
+        if i == num_gpus - 1:
+            size = batch_size - step * i
+        else:
+            size = step
+        size = tf.concat([size, input_shape], axis=0)
+        stride = tf.concat([step, input_shape * 0], axis=0)
+        start = stride * i
+        return tf.slice(data, start, size)
 
-  # Place a copy of the model on each GPU,
-  # each getting a slice of the inputs.
-  for i, gpu_id in enumerate(target_gpu_ids):
-    with tf.device('/gpu:%d' % gpu_id):
-      with tf.name_scope('replica_%d' % gpu_id):
-        inputs = []
-        # Retrieve a slice of the input.
-        for x in model.inputs:
-          input_shape = tuple(x.get_shape().as_list())[1:]
-          slice_i = Lambda(get_slice,
-                           output_shape=input_shape,
-                           arguments={'i': i,
-                                      'parts': num_gpus})(x)
-          inputs.append(slice_i)
+    all_outputs = []
+    for i in range(len(model.outputs)):
+        all_outputs.append([])
 
-        # Apply model on slice
-        # (creating a model replica on the target device).
-        outputs = model(inputs)
-        if not isinstance(outputs, list):
-          outputs = [outputs]
+    # Place a copy of the model on each GPU,
+    # each getting a slice of the inputs.
+    for i, gpu_id in enumerate(target_gpu_ids):
+        with tf.device('/gpu:%d' % gpu_id):
+            with tf.name_scope('replica_%d' % gpu_id):
+                inputs = []
+                # Retrieve a slice of the input.
+            for x in model.inputs:
+                input_shape = tuple(x.get_shape().as_list())[1:]
+                slice_i = Lambda(get_slice,output_shape=input_shape,arguments={'i': i,'parts': num_gpus})(x)
+                inputs.append(slice_i)
 
-        # Save the outputs for merging back together later.
-        for o in range(len(outputs)):
-          all_outputs[o].append(outputs[o])
+            # Apply model on slice
+            # (creating a model replica on the target device).
+            outputs = model(inputs)
+            if not isinstance(outputs, list):
+                outputs = [outputs]
 
-  # Merge outputs on CPU.
-  with tf.device('/cpu:0'):
-    merged = []
-    for name, outputs in zip(model.output_names, all_outputs):
-      merged.append(concatenate(outputs,axis=0, name=name))
-    return Model(model.inputs, merged)
+            # Save the outputs for merging back together later.
+            for o in range(len(outputs)):
+                all_outputs[o].append(outputs[o])
+
+        # Merge outputs on CPU.
+        with tf.device('/cpu:0'):
+            merged = []
+            for name, outputs in zip(model.output_names, all_outputs):
+                merged.append(concatenate(outputs,axis=0, name=name))
+            return Model(model.inputs, merged)
 
 class Network(ABC):
     """
@@ -129,7 +126,7 @@ class Network(ABC):
 
         self.losses = Lambda(Network.ctc_cost_lambda_func, name='loss_ctc')([label_texts, self.tPreds, length_image, length_texts])
         self.graphsModel = Model(inputs=self.inList, outputs=self.losses)
-        if self.config['ESTIMATION']['STEMFREEZE']:
+        if self.config['ESTIMATION']['STEMFREEZE'] == "YES":
             for layer in self.stemNet.layers:
                 layer.trainable = False
             self.stemNet.trainable = False
@@ -147,7 +144,7 @@ class Network(ABC):
         elif not self.parallel:
             self.deviceModel = self.graphsModel
         self.deviceModel.compile(opt, loss={'loss_ctc': lambda y_true, y_pred: y_pred}, metrics=['accuracy'])
-        self.deviceModel.summary()
+        # self.deviceModel.summary()
 
     def preInference(self):
         self.graphsModel = Model(inputs=self.images, outputs=self.tPreds)
@@ -157,7 +154,7 @@ class Network(ABC):
             self.deviceModel = self.graphsModel
         self.deviceModel.summary()
         if self.config['INFERENCE']['WEIGHT_TOLOAD'] != "":
-            self.deviceModel.load_weights(self.config['INFERENCE']['WEIGHT_TOLOAD'])
+            self.deviceModel.load_weights(self.config["ESTIMATION"]["MODEL_ROOT_PATH"]+self.config['INFERENCE']['WEIGHT_TOLOAD'])
         else:
             raise Exception(sys.exc_info())
 

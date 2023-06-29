@@ -1,9 +1,9 @@
 {
-  "NAME": "FedBoost: Federated Learning with Gradient Protected Boosting",
+  "NAME": "Federated Learning with Homomorphic Encryption on CRNN",
 
-  "AUTHOR": "Hanchi Ren, Jingjing Deng, Xiaoke Ma, Yichuan Wang and Xianghua Xie",
+  "AUTHOR": "HANCHI REN, JINGJING DENG and XIANGHUA XIE",
 
-  "INSTUTITE": "Swansea University, United Kingdom; Xidian University, China; Xi'an University of Technology, China",
+  "INSTUTITE": "Vision and Machine Learning Group, Computer Science, Swansea University, United Kingdom",
 
   "WORKMODE": "Estimation",
 
@@ -18,7 +18,7 @@
     "BACKBONE_RNN1_UNIT": [256, 256],
     "BACKBONE_RNN2_UNIT": [256],
     "BACKBONE_RNN_AVAILABLE": ["LSTM", "GRU"],
-    "DICTIONARY_PATH": "./Data/Text/_@Models/FL_CRNN/character_upper.txt",
+    "DICTIONARY_PATH": "/home/hans/WorkSpace/Data/Text/Models/Transcriptor/DATA/character_upper.txt",
     "DICTIONARY_SIZE": 37,
     "MAX_LABEL_LENGTH": 32,
     "IMAGE_HEIGHT": 32,
@@ -36,7 +36,7 @@
 
   "ESTIMATION":
   {
-    "DEBUG": 1,
+    "DEBUG": false,
     "FL_STRATEGY": "FedAvg",
     "FL_STRAEGY_SET": ["FedAvg, FedBoost"],
     "FL_STRATEGY_METRICS": "loss",
@@ -46,31 +46,47 @@
     "LEARNING_RATE": 0.05,
     "SGD_MOMENTUM": 0.9,
     "SGD_DECAY": 0.0005,
-    "SGD_NESTEROV": true,
-    "FINETUNE" : true,
-    "WEIGHT_TOLOAD": "",
-    "STEMFREEZE": false,
+    "SGD_NESTEROV": "True",
+    "FINETUNE" : "NO",
+    "WEIGHT_TOLOAD": "/home/hans/WorkSpace/Data/Text/Models/Transcriptor/FL_CRNN/FedBoost/initial-global_weights.h5",
+    "STEMFREEZE": "NO",
     "TRN_RATIO": 0.9,
     "IMAGE_SIZE": [32, 100],
     "NUM_MAXEPOCH": 50,
-    "NUM_MINEPOCH": 5,
+    "NUM_MINEPOCH": 1,
     "BATCH_SIZE": 800,
-    "VAL_BITCH_SIZE": 800,
     "ROUNDS": 100,
     "CLIENTS": 2,
-    "SAVE_CLIENT_MODEL": true,
     "CLIENT_EPOCH": [1,1],
-    "TRAIN_NAME_LIST": ["SynthText90K", "SynthText80K"],
-    "TEST_NAME_LIST": ["IIIT.5K", "SVT", "SCUT", "ICDAR2015"],
-    "TRAIN_ROOT_PATH": "./Data/Text/_@Models/FL_CRNN/",
-    "MODEL_ROOT_PATH": "./Data/Text/_@Models/FL_CRNN/FL_Model/",
-    "MANAGER_PORT": 7777,
-    "MANAGER_DOMAIN": "csvision.swansea.ac.uk",
-    "MANAGER_AUTH_KEY": "hahaha"
+    "TRAIN_NAME_LIST": ["SynthText90K/SynthText90K_20190911_train.json",
+                        "SynthText80K/SynthText80K_20190923_cropped_train.json"],
+    "TEST_NAME_LIST": ["IIIT.5K/IIIT5K_test_20190829.json",
+                        "SVT/svt_test_20190828_cropped.json",
+                        "ICDAR2015/ICDAR2015_test_20190829.json"],
+    "TRAIN_ROOT_PATH": "/home/hans/WorkSpace/Data/Text/Models/Transcriptor/DATA/",
+    "MODEL_ROOT_PATH": "/home/hans/WorkSpace/Data/Text/Models/Transcriptor/FL_CRNN/",
+    "SMALL_SLICE": 100,
+    "SMALL_SLICE_INFO": "smaller SMALL_SLICE, smaller accuracy reduction. must more than client number, but too large may cause error.",
+    "DP": false
+  },
+  "SERVER":
+  {
+    "SERVER_DOMAIN": "csjdsvr.swan.ac.uk",
+    "SERVER_AUTH_KEY": "hahaha",
+    "SERVER_PORT": 7777
+  },
+  "CLIENT":
+  {
+    "CLIENT_PORT": 8888,
+    "CLIENT_DOMAIN": "csjdsvr.swan.ac.uk",
+    "CLIENT_AUTH_KEY": "heiheihei",
+    "KEY_LENGTH": 128,
+    "SAVE_CLIENT_MODEL": 1,
+    "ROUNDS_SERVER_GET_MODEL": 1
   },
   "INFERENCE":
   {
-    "SAVE_IMG": false,
-    "WEIGHT_TOLOAD": ""
+    "SAVE_IMG": 0,
+    "WEIGHT_TOLOAD": "FedBoost_HE/20200711-214522-1E800B_FedBoost_HE/global/Round_0023-global_weights-test_acc:76.07.h5"
   }
 }

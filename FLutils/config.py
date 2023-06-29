@@ -16,5 +16,6 @@ def get_config(file:str=None, mode:str=None) -> dict:
                 __CRNN_CONFIG__ = json.load(fid)
         except:
             print('Unexpected Error:', sys.exc_info())
-    __CRNN_CONFIG__['WORKMODE'] = mode
+    if mode is not None:
+        __CRNN_CONFIG__['WORKMODE'] = mode
     return __CRNN_CONFIG__

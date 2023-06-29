@@ -1,14 +1,9 @@
 from multiprocessing.managers import BaseManager
 
 class DictItem:
-    def __init__(self, clients):
-        self.items = {"DirName": ""}
-        self.clients = clients
-        self.creat_client()
+    def __init__(self):
+        self.items = {}
 
-    def creat_client(self):
-        for ind in range(self.clients):
-            self.set(key = f"client_{ind}", value = None)
     def set(self, key, value):
         self.items[key] = value
     def get(self, key):
@@ -17,12 +12,12 @@ class DictItem:
         self.set(key, value)
 
 class ManagerServer:
-    def __init__(self, domain, port, auth_key, clients):
+    def __init__(self, domain, port, auth_key):
         self.auth_key = auth_key
         self.is_stop = 0
         self.dict = {}
         self.open_lock = None
-        d = DictItem(clients)
+        d = DictItem()
         BaseManager.register('dict', callable=lambda: d)
         self.server_manager = BaseManager(address=(domain, port), authkey=self.auth_key)
 

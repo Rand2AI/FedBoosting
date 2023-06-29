@@ -7,20 +7,24 @@ from FLutils.weight_summarizer import WeightSummarizer
 class Server:
     def __init__(self, model_fn,
                  weight_summarizer: WeightSummarizer,
-                 nb_clients: int = 100):
+                 nb_clients: int = 100,
+                 slice_num: int = 10):
         self.nb_clients = nb_clients
         self.weight_summarizer = weight_summarizer
+        self.slice_num = slice_num
 
         # Initialize the global model's weights
         self.model_fn = model_fn
         self.global_test_metrics_dict = {k: [] for k in model_fn.metrics_names}
-        self.global_model_weights = model_fn.get_weights()
+        self.global_model_gradient = None
+        self.decrypted_model_weights = model_fn.get_weights()
         FLutils.get_rid_of_the_models(model_fn)
 
         self.global_train_losses = None
         self.round_losses = []
 
-        self.client_model_weights = []
+        self.client_gradients = {}
+        self.linear_clients_list = []
 
         self.client_test_accuracy = []
         self.client_test_loss = []
@@ -29,7 +33,6 @@ class Server:
 
         # Training parameters used by the clients
         self.client_train_params_dict = {"batch_size": 32,
-                                         "val_batch_size": 64,
                                          "epochs": [1,1,1],
                                          "max_label_length":32,
                                          "verbose": 1,
@@ -39,15 +42,13 @@ class Server:
     def _create_model_with_updated_weights(self, model=None) -> models.Model:
         if model is None:
             model = self.model_fn
-        model.set_weights(self.global_model_weights)
+        model.set_weights(self.decrypted_model_weights)
         return model
-
-    def send_model(self, client):
-        client.receive_and_init_model(self.model_fn, self.global_model_weights)
 
     def init_for_new_round(self):
         # Reset the collected weights
-        self.client_model_weights.clear()
+        self.client_gradients.clear()
+        self.linear_clients_list.clear()
         # Reset epoch losses
         self.round_losses.clear()
         self.client_test_accuracy.clear()
@@ -59,23 +60,31 @@ class Server:
         client_test_result = []
         if fl_strategy_metrics=="acc":
             np_client_test_accuracy = np.array(self.client_test_accuracy).transpose() # transpose data from dataset-wise to model-wise
-            client_history_acc = [his[fl_strategy_metrics][0] for his in self.client_history]
+            client_history_acc = [np.mean(his[fl_strategy_metrics]) for his in self.client_history]
             for ind, result in enumerate(np_client_test_accuracy):
-                temp_value = sum(result)
-                client_test_result.append(temp_value*client_history_acc[ind]/sum(client_history_acc))
+                temp_value = np.mean(result)
+                client_test_result.append(temp_value * (client_history_acc[ind]/sum(client_history_acc)))
         else:
             np_client_test_loss = np.array(self.client_test_loss).transpose()
             client_history_loss = [1/np.mean(his[fl_strategy_metrics]) for his in self.client_history] # calculate average loss if epoch more than 1.
             for ind, result in enumerate(np_client_test_loss):
-                temp_value = sum(result)
-                client_test_result.append(1/temp_value * client_history_loss[ind]/sum(client_history_loss))
+                temp_value = np.mean(result)
+                client_test_result.append((1/temp_value) * (client_history_loss[ind]/sum(client_history_loss)))
         for value in client_test_result:
             self.client_test_density_distribution.append(value / sum(client_test_result))
 
     def summarize_weights(self):
-        new_weights = self.weight_summarizer.process(client_weight_list=self.client_model_weights,
-                                                     density_distribution=self.client_test_density_distribution)
-        self.global_model_weights = new_weights
+        new_gradient = self.weight_summarizer.process(client_gradient_dict=self.client_gradients,
+                                                     density_distribution=self.client_test_density_distribution,
+                                                      slice_num = self.slice_num)
+        self.global_model_gradient = new_gradient
+
+    def linear_client_gradients(self):
+        self.linear_clients_list = self.weight_summarizer.linear(client_gradient_dict=self.client_gradients,
+                                                                 slice_num = self.slice_num)
+
+    def updata_decrypted_global_model(self, decrypted_model_weights):
+        self.decrypted_model_weights = decrypted_model_weights
 
     def test_global_model(self, testModel, test_data, char_to_id):
         model = self._create_model_with_updated_weights(testModel)
@@ -112,8 +121,8 @@ class Server:
 
     def evaluate_global_model(self, client_train_dict, test_data: np.ndarray):
         model = self._create_model_with_updated_weights()
-        data_generator = FLutils.generator(client_train_dict, test_data, "test")
         batch_size = min(client_train_dict["batch_size"], len(test_data))
+        data_generator = FLutils.generator(client_train_dict, test_data, batch_size)
         hist = model.evaluate_generator(data_generator,
                                            steps=len(test_data) // batch_size,
                                            verbose=0)
@@ -131,5 +140,5 @@ class Server:
     def load_model_weights(self, path: str, by_name: bool = False):
         model = self._create_model_with_updated_weights()
         model.load_weights(str(path), by_name=by_name)
-        self.global_model_weights = model.get_weights()
+        self.decrypted_model_weights = model.get_weights()
         FLutils.get_rid_of_the_models(model)

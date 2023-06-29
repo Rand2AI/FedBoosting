@@ -20,7 +20,8 @@ class Client:
     def receive_and_init_model(self, model_fn, model_weights):
         self._init_model(model_fn, model_weights)
 
-    def edge_train(self, client_train_dict: dict, RootPath: str, Round: int, SAVE_CLIENT_MODEL=False):
+    def edge_train(self, client_train_dict: dict, RootPath: str, Round: int, SAVE_CLIENT_MODEL=0, switch_label=False,
+                   switch_pair=None):
         if self.model is None:
             raise ValueError("Model is not created for client: {0}".format(self.client_id))
         callbackList = []
@@ -34,11 +35,12 @@ class Client:
                                          save_weights_only=True,
                                          verbose=0)
             callbackList.append(checkpoint)
+        batch_size = min(client_train_dict["batch_size"], len(self.train_data))
         # earlystop = EarlyStopping(monitor='val_acc', patience=200, restore_best_weights=True)
-        trn_generator = FLutils.generator(client_train_dict, self.train_data)
+        trn_generator = FLutils.generator(client_train_dict, self.train_data, batch_size, switch_label=switch_label, switch_pair=switch_pair)
         # val_generator = FLutils.generator(client_train_dict, self.evaluate_data)
         hist = self.model.fit_generator(trn_generator,
-                                        steps_per_epoch=len(self.train_data) // client_train_dict["batch_size"],
+                                        steps_per_epoch=len(self.train_data) // batch_size,
                                         epochs=client_train_dict["epochs"][self.client_id],
                                         callbacks = callbackList,
                                         verbose=1)
@@ -47,12 +49,13 @@ class Client:
         FLutils.get_rid_of_the_models(self.model)
         return hist
 
-    def edge_test(self, client_train_dict: dict):
+    def edge_test(self, client_train_dict: dict, switch_label=False, switch_pair=None):
         if self.model is None:
             raise ValueError("Model is not created for client: {0}".format(self.client_id))
-        evaluate_generator = FLutils.generator(client_train_dict, self.evaluate_data)
+        batch_size = min(client_train_dict["batch_size"], len(self.evaluate_data))
+        evaluate_generator = FLutils.generator(client_train_dict, self.evaluate_data, batch_size, switch_label=switch_label, switch_pair=switch_pair)
         results = self.model.evaluate_generator(evaluate_generator,
-                                                steps=len(self.evaluate_data) // client_train_dict["val_batch_size"],
+                                                steps=len(self.evaluate_data) // batch_size,
                                                 verbose=0)
         results_dict = dict(zip(self.model.metrics_names, results))
         FLutils.get_rid_of_the_models(self.model)
